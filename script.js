@@ -3,54 +3,56 @@ const ipAddress = document.getElementById("ipAddress");
 const ipLocation = document.getElementById("location");
 const timezone = document.getElementById("timezone");
 const isp = document.getElementById("isp");
-const form = document.forms.ip;
-var map = L.map('map');
+const form = document.getElementById("ipForm");
+let map;
 
-// Eventlistener to call ipInfo function when the user enters the ip address
+// Initialize map
+function initMap(lat = 37.38605, lng = -122.08385) {
+  map = L.map('map').setView([lat, lng], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  L.marker([lat, lng]).addTo(map);
+}
+
+// Event listener for form submission
 form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    ipInfo(e.target[0].value);
-    e.target[0].value = "";
-})
+  e.preventDefault();
+  const input = document.getElementById("ip-input").value;
+  ipInfo(input);
+});
 
-// inInfo function to fetch the data of the ip Address/domain inputted by the user
+// Fetch IP information
 const ipInfo = (address = "") => {
-    fetch(`https://geo.ipify.org/api/v2/country,city?apiKey=at_qoJBZrBxMVeTgrJkk7P3vZIbtmb0U&domain=${address}`)
+  fetch(`https://geo.ipify.org/api/v2/country,city?apiKey=at_qoJBZrBxMVeTgrJkk7P3vZIbtmb0U&domain=${address}`)
     .then(res => res.json())
     .then(data => {
-        let lat = data.location.lat;
-        let lng = data.location.lng;
-        showIpInfo(data);
-        generateMap(lat,lng);
+      const { lat, lng } = data.location;
+      showIpInfo(data);
+      updateMap(lat, lng);
     })
-}
-
-// Invoke the ipInfo function when the page loads
-ipInfo();
-
-// showIpInfo function to show to info of the ip address to the user
-const showIpInfo = (data) => {
-    ipAddress.innerHTML = data.ip;
-    ipLocation.innerHTML = `${data.location.city}, ${data.location.country} ${data.location.postalCode}`;
-    timezone.innerHTML = `UTC ${data.location.timezone}`;
-    isp.innerHTML = data.isp;
-}
-
-// generateMap function to generate map aaccording to the latitude and longitude entered
-const generateMap = (lat, lng) => {
-    let locationIcon = L.icon({
-        iconUrl: 'images/icon-location.svg',
-    
-        iconSize:     [30, 30], // size of the icon
-        iconAnchor:   [lat, lng], // point of the icon which will correspond to marker's location
-        popupAnchor:  [0, 0] // point from which the popup should open relative to the iconAnchor
+    .catch(error => {
+      console.error("Error fetching IP data:", error);
+      alert("Failed to fetch IP data. Please try again.");
     });
-    map.setView([lat, lng], 17);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-    }).addTo(map);
+};
 
-    L.marker([lat, lng], {icon: locationIcon}).addTo(map);
-}
+// Display IP information
+const showIpInfo = (data) => {
+  ipAddress.textContent = data.ip || "-";
+  ipLocation.textContent = `${data.location.city}, ${data.location.region} ${data.location.postalCode}` || "-";
+  timezone.textContent = `UTC ${data.location.timezone}` || "-";
+  isp.textContent = data.isp || "-";
+};
 
+// Update map with new coordinates
+const updateMap = (lat, lng) => {
+  map.setView([lat, lng], 13);
+  L.marker([lat, lng]).addTo(map);
+};
+
+// Initialize map and fetch user's IP on page load
+document.addEventListener("DOMContentLoaded", () => {
+  initMap();
+  ipInfo();
+});
