@@ -18,4 +18,4 @@ This is a solution to the [IP Address Tracker challenge on Frontend Mentor](http
 
 ## Live Demo
 
-[View Live Demo](https://krrish105.github.io/IP-Address-Tracker/)
+[View Live Demo](https://Nomanbaig7342.github.io/IP-Address-Tracker/)
